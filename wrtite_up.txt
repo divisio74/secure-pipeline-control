@@ -1,0 +1,84 @@
+PIPETO:
+
+
+césart en 7 de décallage
+
+So. . . you cracked the password last time.
+Impressive. Really. You even made it look easy.
+But this time, things will be different.
+The file you’re trying to access has been scrambled. Not just locked--transformed. A simple password
+won’t be enough now. You’ll need to dig deeper, think smarter, and force your way through.
+A list of possible keys has been intercepted during a G.O.L.E.M. transmission. It may contain the
+one you need. Or it may be a decoy. That’s for you to figure out.
+Your tools? Your brain, your terminal, and this wordlist.
+Your objective? Unlock the mission file and reveal your orders.
+Keep the stone in your pocket.
+It’s more than a name.
+It’s your foundation--solid, steady, and unbreakable when it matters most.
+Good luck, engineer.
+We’re counting on you
+
+MDP:
+vaultkey1
+
+
+introduction :
+
+binaire analyzé avec ghidra et a première vue plusieurs choses sont bizarre :
+
+on constate tout d'abord la focntion qui semble etre principal : process_entry 
+prenant comme arguments : "undefined8 param_1"
+
+dans cette focntion on constate : syscall();
+
+ceco peut suggérer une faille car l'appel syscall n'est pas effectué avec la protection de la lib:
+
+ 0040b328 b8 3f 01        MOV        EAX,0x13f
+                 00 00
+        0040b32d 0f 05           SYSCALL
+        0040b32f 85 c0           TEST       EAX,EAX
+
+on constate en décryptant la décimal de la valeur chargé dans EAX jsute avant le syscall qu'elle corespond a la valeur 319 
+en conclusion le sycall(319) coorespond a execveat ce qui est un execve plus flexible permettant possiblement de contourner certaines restriction 
+
+ensuite on constate deux buffer : 
+
+  undefined1 auVar18 [16];
+  long local_cc0 [399];
+
+le deuxième est vraiment consequent donc il pourrait donner lieu a un buffer overflow 
+on peut observer plus loins dans le code que il y'a cette boucle dynamique :
+
+    for (uVar8 = (ulong)(uVar6 + uVar3 + uVar2); uVar8 != 0; uVar8 = uVar8 - 1) {
+      *(undefined1 *)plVar11 = *puVar12;
+      puVar12 = puVar12 + (ulong)bVar17 * -2 + 1;
+      plVar11 = (long *)((long)plVar11 + (ulong)bVar17 * -2 + 1);
+    }
+
+or la focntion process_entry ne vérifie pas que le nombre de répétition de cette boucle ne dépasse pas la taille du buffer[399]
+
+on peut donc tenter d'écrire apres le buffer en spammant la boucle dynamique qui se fait normalement uVar8 fois 
+
+or uvar8 correpond a uVar8 = uVar6 + uVar3 + uVar2
+
+donc il faut voir si une des ces trois variables est manipualable ou si les trois sont des constantes .
+
+
+
+cette fonction : 
+
+void FUN_0040b46f(void)
+
+{
+  uint unaff_EBX;
+  
+  if ((unaff_EBX & 0x7fffffff) != 0) {
+    return;
+  }
+  return;
+}
+on dirait qu'elle ne sert a rien pourtant elle est utliser 
+
+
+
+
