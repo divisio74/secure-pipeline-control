@@ -152,7 +152,7 @@ de causer un buffer overflow
 
 
 
-cette fonction : 
+cette fonction ne sert a rien :
 
 void FUN_0040b46f(void)
 
@@ -164,7 +164,6 @@ void FUN_0040b46f(void)
   }
   return;
 }
-on dirait qu'elle ne sert a rien pourtant elle est utliser 
 
 
 
