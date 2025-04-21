@@ -24,6 +24,10 @@ vaultkey1
 
 introduction :
 
+
+
+Analyze de process_entry :
+
 binaire analyzé avec ghidra et a première vue plusieurs choses sont bizarre :
 
 on constate tout d'abord la focntion qui semble etre principal : process_entry 
@@ -40,6 +44,7 @@ ceco peut suggérer une faille car l'appel syscall n'est pas effectué avec la p
 
 on constate en décryptant la décimal de la valeur chargé dans EAX jsute avant le syscall qu'elle corespond a la valeur 319 
 en conclusion le sycall(319) coorespond a execveat ce qui est un execve plus flexible permettant possiblement de contourner certaines restriction 
+(a développer )
 
 ensuite on constate deux buffer : 
 
@@ -62,6 +67,11 @@ on peut donc tenter d'écrire apres le buffer en spammant la boucle dynamique qu
 or uvar8 correpond a uVar8 = uVar6 + uVar3 + uVar2
 
 donc il faut voir si une des ces trois variables est manipualable ou si les trois sont des constantes .
+
+apres recherches on peut constater que ces trois variables sont plsu ou moins interdépendante et dynamique ce qui veut dire qu'il a tres probablement possibilité
+de causer un buffer overflow 
+
+
 
 
 
