@@ -43,13 +43,28 @@ Available commands :
 - simulate_meltdown: Simulate a reactor meltdown for testing purposes.
 - check_cooling_pressure: Check the pressure in the cooling system.
 - send_status_report: Send a status report to the control center.
+j'ai crée un fichier data et voci ce que j'ai trouvé : un texte crypté en base 64:
+Hostname: localhost
+IP Address: 127.0.0.1
+Process: pipeto (PID: 1234)
+
 - monitor_radiation_levels: Monitor radiation levels in the reactor.
 - set_reactor_power: Adjust the reactor's power output.
+ Enter reactor power level: 2147483647
+
+Reactor power adjustment may be incorrect.
+Reactor systems are behaving erratically!
+Reactor core temperature rising uncontrollably...
+ FLAG : {12EXPLOSION34}
+Emergency shutdown initiated!
 - run_diagnostic: Run a full diagnostic on the reactor systems.
+ mode normal ne focntionne pas 
+ mode debug affiche un secret :  FLAG : {SECRET DIAGNOSTIC KEY}
 - enable_remote_access: Enable or disable remote access to the reactor.
 - quit: Exit the console.
 - help: Display this help message.
 - load_fuel_rods: Load fuel rods into the reactor.
+   ne marche pas pour 10
 - log_system_event: Log a system event.
 - history: Display command history.
 - !n: Execute command number n from history.- load_config: Load configuration from a file.
@@ -164,6 +179,43 @@ void FUN_0040b46f(void)
   }
   return;
 }
+verififcaétion de mdp sans passer par de la cryptograhpie alors il est repérable dans el code 
+finalement j'ai commencé a faire des recherches de code admin sur ghidra et je suis tomber sur admin123 en cherchant dans lma colonne de traduction des hexadecimal
+
+        0040a48c 65              ??         65h    e
+        0040a48d 64              ??         64h    d
+        0040a48e 2c              ??         2Ch    ,
+        0040a48f 2e              ??         2Eh    .
+        0040a490 72              ??         72h    r
+        0040a491 6f              ??         6Fh    o
+        0040a492 74              ??         74h    t
+        0040a493 6f              ??         6Fh    o
+        0040a494 63              ??         63h    c
+        0040a495 6f              ??         6Fh    o
+        0040a496 6c              ??         6Ch    l
+        0040a497 73              ??         73h    s
+        0040a498 20              ??         20h     
+        0040a499 6e              ??         6Eh    n
+        0040a49a 08              ??         08h
+        0040a49b 20              ??         20h     
+        0040a49c ef              ??         EFh
+        0040a49d fd              ??         FDh
+        0040a49e bf              ??         BFh
+        0040a49f fd              ??         FDh
+        0040a4a0 61 63 74        ds         "activa$d."
+                 69 76 61 
+                 24 64 2e 00
+        0040a4aa 61              ??         61h    a
+        0040a4ab 64              ??         64h    d
+        0040a4ac 6d              ??         6Dh    m
+        0040a4ad 69              ??         69h    i
+        0040a4ae 6e              ??         6Eh    n
+        0040a4af 31              ??         31h    1
+        0040a4b0 32              ??         32h    2
+        0040a4b1 33              ??         33h    3
+
+
+ce qui donne :  FLAG :{Emergency protocols activated, you are now admin !}
 
 
 
