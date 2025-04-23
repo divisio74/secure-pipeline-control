@@ -179,7 +179,7 @@ void FUN_0040b46f(void)
   }
   return;
 }
-verififcaétion de mdp sans passer par de la cryptograhpie alors il est repérable dans el code 
+verififcation de mdp sans passer par de la cryptograhpie alors il est repérable dans le code 
 finalement j'ai commencé a faire des recherches de code admin sur ghidra et je suis tomber sur admin123 en cherchant dans lma colonne de traduction des hexadecimal
 
         0040a48c 65              ??         65h    e
@@ -217,6 +217,142 @@ finalement j'ai commencé a faire des recherches de code admin sur ghidra et je 
 
 ce qui donne :  FLAG :{Emergency protocols activated, you are now admin !}
 
+en utilisant ghidra  on observe une fonction run_turbine  avec un flag a découvrir 
+
+  if ((local_10 == 0) || ((int)local_10 < 0x10)) {
+    for (; local_c != local_10; local_c = local_c + 1) {
+      if (0xf < local_c) {
+        puts("{ERR0R TURB1NE CAN\'T ST0P}");
+      }
+    }
+  }
+
+donc je tape dans le terminal run_turbine et après je met une valeur négative comme -1
+on observe que Turbine is running... 15/-1
+Turbine is running... 16/-1
+{ERR0R TURB1NE CAN'T ST0P}
+cela fonctionne et dépasse meme la limite de 15 et donc la turbine ne s'arrèteras jamais et le
+flag apparait
 
 
+void turbine_temperature(void)
 
+{
+  size_t sVar1;
+  longlong lVar2;
+  char local_98 [140];
+  int local_c;
+  
+  printf("Enter the number of degrees you want to increase or decrease the turbine temperature : ");
+  fgets(local_98,0x80,_stdin);
+  sVar1 = strcspn(local_98,"\n");
+  local_98[sVar1] = '\0';
+  lVar2 = strtoll(local_98,(char **)0x0,10);
+  local_c = (int)lVar2;
+  if ((local_c != 0x7ffffffe) && (local_c != -0x7fffffff)) {
+    printf("Turbine temperature is %d degrees.\n",0x14);
+    if (local_c < 0) {
+      printf("Turbine temperature is decreasing : %d\n",(ulong)(local_c + 0x14));
+    }
+    else if (0 < local_c) {
+      printf("Turbine temperature is increasing : %d\n",(ulong)(local_c + 0x14));
+    }
+    return;
+  }
+  puts("Turbine temperature is too unstable.");
+  puts("{ERR0R TURBINE WILL EXPLODE}");
+                    /* WARNING: Subroutine does not return */
+  exit(1);
+}
+
+Dans cette fonction analisé avec ghidra on observe un flag {ERROR ...}
+pour y accéder on doit ne pas entrer dans la boucle if on observe if ((local_c != 0x7ffffffe) && (local_c != -0x7fffffff))
+on va donc essayer de rentrer les valeurs maximal d'un int donc 2147483646 et -2147483647 or turbine_temperature
+Enter the number of degrees you want to increase or decrease the turbine temperature : -2147483647
+Turbine temperature is too unstable.
+{ERR0R TURBINE WILL EXPLODE}
+
+
+void turbine_remote_access(void)
+
+{
+  size_t __n;
+  char local_48 [32];
+  char local_28 [28];
+  int local_c;
+  
+  builtin_strncpy(local_28,"Data/remote_accessXXXXXX",0x19);
+  local_c = mkstemp(local_28);
+  if (local_c == -1) {
+    puts("Error: Unable to create temporary file.");
+  }
+  else {
+    printf("Temporary file created: %s\n",local_28);
+    builtin_strncpy(local_48,"{ACCESS_GRANTED}",0x11);
+    __n = strlen(local_48);
+    write(local_c,local_48,__n);
+    close(local_c);
+    puts("Enabling remote access...");
+    sleep(5);
+    local_c = open(local_28,0);
+    if (local_c == -1) {
+      puts("Error: Temporary file was tampered with or deleted.");
+    }
+    else {
+      unlink(local_28);
+    }
+  }
+  return;
+}
+
+Dans cette fonction on peux voire un flag {ACCESS GRANTED}
+on voit que ça va créer un fichier dans Data/ c'est un fichier temporaire
+qui dure 5 s on le voit avec le sleep(5) après ces 5s il disparait 
+lorsque on clique sur le fichier temporaire on voit le flaga a l'intérieur.
+
+
+avec la commande help on vois les différentes commande il y en a eu qui s'appelle simulate meltdown
+en lançant on obtiens  
+
+simulate_meltdown
+Generated random number: 62
+Reactor core temperature normal.
+Reactor core temperature: 62
+Reactor core status: Reactor Normal
+
+on observe qu'il y a un chiffre généré aléatoirement et des réactions avec différents niveaux
+j'en déduis que il doit forcément avoir un niveaux critique ducoup je relance la fonction jusqu'à tombé sur un nombre très bas
+ou très haut et on observe que:
+
+pipeto> simulate_meltdown
+Generated random number: 2
+Meltdown simulated! Reactor core is overheating.
+Critical Error: Secret Code Leaked: {MELTDOWN1234}
+
+
+avec la commande help on vois les différentes commande il y en a eu qui s'appelle 
+en lançant on obtiens
+
+
+la commande load_fuel_rods on observe qu'elle va nous demander un nombre maximum 10 on essaye une valeur négative et
+
+Loading fuel rods...
+Enter the number of fuel rods to load (max 10): -1
+
+Sensitive Data:
+Secret Key: {The secret stone is here !}�A�-1
+
+pipeto> check_cooling_pressure      cette commande va nous donner directement un flag
+Cooling pressure check in progress...
+Simulating sensor reading...
+Sensor reading complete.
+Checking cooling pressure...
+Cooling pressure status: Pressure OK
+Sensitive Info: {Sensitive Data}
+Temporary buffer: Temporary data: 83
+Simulating sensor reading...
+Sensor reading complete.
+Cooling pressure check complete.
+
+
+"7JSECRET_LOG_12PI" à chercher en profondeur
