@@ -356,3 +356,42 @@ Cooling pressure check complete.
 
 
 "7JSECRET_LOG_12PI" à chercher en profondeur
+
+on observe UPX ducoup on convertit en upx et obtient une version claire 
+
+void FUN_00401da2(void)
+
+{
+  char *pcVar1;
+  undefined8 local_108;
+  undefined8 local_100;
+  undefined8 local_f8;
+  undefined8 local_f0;
+  char local_e8 [112];
+  undefined1 local_78 [104];
+  FILE *local_10;
+  
+  local_108 = 0x5f5445524345537b;
+  local_100 = 0x495032315f474f4c;
+  local_f8 = 0x7d343345525245;
+  local_f0 = 0;
+  printf("Enter command: ");
+  fgets(local_e8,100,stdin);
+  __isoc99_sscanf(local_e8,&DAT_00404da0,local_78);
+  local_10 = fopen("Data/system.log","a");
+  if (local_10 == (FILE *)0x0) {
+    puts("Error: Unable to open log file \'Data/system.log\'.");
+  }
+  else {
+    printf("Logging event: %s\n",local_e8);
+    fprintf(local_10,"EVENT: %s\n",local_e8);
+    pcVar1 = strstr(local_e8,"leak");
+    if (pcVar1 != (char *)0x0) {
+      fprintf(local_10,"SECRET_KEY_LEAKED: %s\n",&local_108);
+    }
+    fclose(local_10);
+  }
+  return;
+}
+
+on tape leak et on trouve le flag dans Data/system.log"
