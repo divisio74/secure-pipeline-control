@@ -395,3 +395,80 @@ void FUN_00401da2(void)
 }
 
 on tape leak et on trouve le flag dans Data/system.log"
+
+vec ghidra j'ai pu observer que certaines focntion caché existait comme unlock_secret_mode 
+je remarque q'une varaible est en commun avec la focntion permettant d'étre admin 
+il faut donc se connecter en tant qu'admin ensuite taper la commande secrete que l'on peut observer 
+a un endroit ou on voit la liste des focntion disponible or une n'est pas présente dans la commande help
+c'ets la focntion unlock_secret_mode
+si vous avez au préalable fait la command poiur etre admin alors vous pouvez éxécuter la focntion qui vous donnera le flag 
+Secret mode unlocked! Welcome, admin.
+{ADMIN4242}
+ensuite on peut constater qu'un autre fonction cacher dépend de cette variable :
+
+la focntion trigger_emergency_protocols
+celle dernière donnant le flag uniquement si vous étes admin et donc que la varaible DAT_00408280
+sois activédonnant le flag : trigger_emergency_shutdown
+{SHUTDOWN}% 
+
+
+dead end : void FUN_00402687(char *param_1)
+
+{
+  int iVar1;
+  
+  iVar1 = strcmp(param_1,"ThisIsTheBestPassword");
+  if (iVar1 == 0) {
+    puts("{Correct password! Welcome, admin.}");
+  }
+  return;
+}
+fonction jamais appellé 
+
+sinon il faudrait rentré ce mot de passe a la place de admin123
+
+void Flag_function_pocket_isnt(void)
+
+{
+  puts("{The stone isn\'t in the pocket anymore ...}");
+  return;
+}
+
+autre dead end  dans fuel_rods
+
+
+enfin un autre falg secret : 
+trouvable avec la focntion search sur ghidra permettant de chercher des strings par mot clé 
+on trouve ce bout de flag avec comme mot clé : KEY
+
+Ce qui donne en ASCII :
+"IC KEY}"
+
+et "{U@"
+
+concatener ils donnent : {U@IC KEY}
+
+donc ce n'est pas le flag mais si je vias dans la focntion ou les variables sont appellé j'en découvre d'autres :
+
+  local_78[0] = 0x4345537b;
+  local_78[1] = 0x20544552;
+  local_78[2] = 0x47414944;
+  local_78[3] = 0x54534f4e;
+  local_78[4] = 0x4b204349;
+  local_78[5] = 0x7d5945;
+
+  qui donne :
+  CES{RETARDINGKNOTICELY}
+
+  si l'on les met a la verticale chaque segment est décalé par rapport a l'autre :
+  C E S {
+T E R
+G A I D
+T S O N
+K C I
+} Y E
+
+si on lit de droite a gauche ce texte on a la clé :
+
+
+{SECRET_DIAGNOSTIC_KEY}
