@@ -1,0 +1,7 @@
+1 : la première chose que j'ai décidé d'analyser est la focntion "configure_cooling_system"
+qui est censer ouvrire un fichier cooling_file.txt dans le dossier DATA cependant ce dernier n'éxiste pas.
+De plus on constate que un buffer est initialiser a 64 char max et ensuite une ligne indique qu'on copie le contenue 
+de cooling_file.txt dans le buffer avec comme seule restriction l'arret pour un \0.
+On peut donc en déduire que si le contenue de cooling_file.txt est plus grand que 64 caractères alors on va crée un buffer overflow.
+
+2 :
