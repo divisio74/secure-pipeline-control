@@ -52,3 +52,87 @@ erreur du format string c'est a dire que le printf est mal utilisé il faudrait 
 
 on voit ici que l'utilisation du gets est dangereuse car gets est beucoup plus vunérable au buffer overflow il faudrais utilisé fgets de préférence.
 
+
+8 : void log_system_event()
+
+    if (strstr(input, "leak")) {
+        fprintf(log, "SECRET_KEY_LEAKED: %s\n", secret_key);
+    }
+
+si on tape leak la cley secrete apparait alors on peux considérer comme une fuit de donnée il faudrait enlever ou ajouter un mot de passe encrypté pour éviter
+cette fuite
+
+
+9 : monitor_radiation_levels ()
+
+        char    buffer[10];
+		void (* function_ptr) () = NULL;
+
+        ...
+        if (function_ptr)
+			{
+				function_ptr();
+			} else
+			{
+				printf ("Function Pointer: %p\n"
+						,( void * ) function_ptr);
+			}
+
+ici on a un cas de buffer overflow c'est à dire que on peux arriver a ecraser  fuction_ptr et redirigé
+vers une autre adresse dont celle de 
+    void secret_function ()
+	{
+		printf (
+				"{The stone isn't in the pocket anymore ...}\n");
+	}
+
+alors le flag sera écris
+
+
+10 : run_diagnostic()
+
+    on a :
+        char sensitive_info[64] = "{SECRET DIAGNOSTIC KEY}";
+
+        ...
+        if (strcmp(input, "debug") == 0) {
+        data = (int *)sensitive_info;
+        ...
+        if (data == NULL) {
+            printf("Error: Diagnostic data is unavailable (NULL pointer).\n");
+        } else if (data == (int *)sensitive_info) {
+            printf("Diagnostic result: %s\n", (char *)data);
+        } else {
+            printf("Diagnostic result: Code %d\n", *data);
+        }
+
+    on voit donc que si l'utilisateur tape debug sensitive info est affiché donc c'est de l fuite de données
+    importante et sensible 
+
+11 : set_reactor_power()
+
+    char power[11];
+
+    printf("Enter reactor power level: ");
+    fgets(power, sizeof(power), stdin);
+    power[strcspn(power, "\n")] = 0;
+
+    on observe premièrement que power a 11 de place or on onbserve que si on tape plus de caractères
+    que d'espace disponible sa lance une autre demande avec les caractère qui n'ont pas de placd
+    
+    exemple :
+            pipeto> set_reactor_power
+            Enter reactor power level: 999999999999
+            Reactor power set to: 1410066407
+            Reactor operating within safe parameters.
+            pipeto> Unknown command: 99
+
+   if (input_power > INT_MAX - 1000) {
+        printf("\nReactor power adjustment may be incorrect.\n");
+        printf("Reactor systems are behaving erratically!\n");
+        printf("Reactor core temperature rising uncontrollably...\n");
+        printf("{12EXPLOSION34}\n");
+        printf("Emergency shutdown initiated!\n\n");
+        exit(1);
+    }
+    et ici on a donc un integer overflows si on met la valeur maximal d'un int le flag sort
