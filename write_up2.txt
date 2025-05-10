@@ -4,4 +4,51 @@ De plus on constate que un buffer est initialiser a 64 char max et ensuite une l
 de cooling_file.txt dans le buffer avec comme seule restriction l'arret pour un \0.
 On peut donc en déduire que si le contenue de cooling_file.txt est plus grand que 64 caractères alors on va crée un buffer overflow.
 
-2 :
+
+2 : je regarde d'abord a la compilation  si il y a des erreurs j'observe plusieurs warnings
+    le premier: src/commands/check_cooling_pressure.c:43:9: warning: pointer ‘data’ used after ‘free’ [-Wuse-after-free]
+   43 |     if (strcmp(data, "Pressure OK")) {
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/commands/check_cooling_pressure.c:41:5: note: call to ‘free’ here
+   41 |     free(data);
+
+on observe un used-after-free ça veux dire qu' on a free(data) et après on utilise data il faudrait utiliser free(data) a la fin.
+
+
+3 : ensuite src/commands/load_config.c: In function ‘load_config’:
+src/commands/load_config.c:35:5: warning: ‘read’ writing 100 bytes into a region of size 8 overflows the destination [-Wstringop-overflow=]
+   35 |     read(fd, array, 100);
+      |     ^~~~~~~~~~~~~~~~~~~~
+src/commands/load_config.c:31:10: note: destination object ‘array’ of size 8
+   31 |     char array[8] = {};
+
+ici il y a un buffer-overflow car char array = 8 et on lui donne 100 il n'y a donc pas assez de place  il faudrait soit initialiser char array a 100 ou allouer dynamiquement
+
+
+4 : src/my_console.c:119:6: warning: conflicting types for ‘check_pepito_lib’; have ‘void(char *)’
+  119 | void check_pepito_lib(char *input){
+      |      ^~~~~~~~~~~~~~~~
+src/my_console.c:87:13: note: previous implicit declaration of ‘check_pepito_lib’ with type ‘void(char *)’
+   87 |             check_pepito_lib(line);
+
+ici il y a un conflit dans la déclaration de la fonction check_pipeto_lib on voit ici qu'elle ne prennent pas le meme parametres
+
+
+5 : rc/my_console.c:120:19: warning: typedef ‘t_myfunc’ locally defined but not used [-Wunused-local-typedefs]
+  120 |     typedef void(*t_myfunc)(void);
+      |                   ^~~~~~~~
+on voit ici un unused c'est a dire qu'on ne l'utilise pas on peux donc le supprimer 
+
+
+6: src/utils.c: In function ‘load_pipetorc’:
+src/utils.c:44:18: warning: format not a string literal and no format arguments [-Wformat-security]
+   44 |           printf(line);
+      |                  ^~~~
+
+erreur du format string c'est a dire que le printf est mal utilisé il faudrait plutot utiliser si c'est un char * printf("%s", line)
+
+
+7 : monitor_radiation_levels.c:(.text+0x45): warning: the `gets' function is dangerous and should not be used.
+
+on voit ici que l'utilisation du gets est dangereuse car gets est beucoup plus vunérable au buffer overflow il faudrais utilisé fgets de préférence.
+
