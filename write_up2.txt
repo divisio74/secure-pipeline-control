@@ -1,11 +1,70 @@
-1 : la première chose que j'ai décidé d'analyser est la focntion "configure_cooling_system"
-qui est censer ouvrire un fichier cooling_file.txt dans le dossier DATA cependant ce dernier n'éxiste pas.
-De plus on constate que un buffer est initialiser a 64 char max et ensuite une ligne indique qu'on copie le contenue 
+1 : "activate_emergency_protocols" Dans cette première focntion on constate un problème de fuite de donnée critique "data leaks" :
+En effet le mot de passe est directement comparé en claire dans la fonction : admin123 .
+on remarque donc que si l'on tape ce mot de passe on obtient le flag mais on devient aussi admin dans le 
+programme ce qui fait passer la variables IS_admin a 1.
+Ceci permettant d'autres exploites dans d'autres fonctions.
+
+2 : "check_cooling_pressure" dans cette fonction le problème vient d'un use after free de la variable data .
+En effet celle ci est free juste avant son utilisation pour une condition permettant d'afficher le flags .
+Or comme la variable n'a pas été mise a NULL apres le free alors il y'a des risque pour que data contienne toujours l'information vulnérable . use after free
+
+
+3 : "Check_reactor_status" Dans cette focntion nous avons une focntion principale et une focntion permettant de crypté les donné a la facon d'un code césar :
+On constate que le message encrypté est copié dans un buffer dont la taille n'est pas verifié par la fonction qui encrypte ce qui veut dire qu'ici il est possible
+d'éxécuter un buffer overflow .
+Mais surtout le code de cryptage ne doit jamais etre présent en claire dans un code.
+
+
+4: "configure_cooling_system" qui est censé ouvrir un fichier cooling_file.txt dans le dossier DATA cependant ce dernier n'éxiste pas.
+De plus on constate que un buffer est initialiser à 64 char max et ensuite une ligne indique qu'on copie le contenue 
 de cooling_file.txt dans le buffer avec comme seule restriction l'arret pour un \0.
 On peut donc en déduire que si le contenue de cooling_file.txt est plus grand que 64 caractères alors on va crée un buffer overflow.
 
+5 : "enable_remote_access" aucun flag visible mais de nombreux problèmes comme un DOS possible en exploitant a répétition 
+la fonction "perform_network_call" a cause de cette ligne : for (volatile int i = 0; i < 100000000; i++);
+    sleep(5);
+enfin un buffer overflow pourrait modifié cette variable : const char *dummy_urls[] = {
+        "http://example.com/api/enable",
+        "http://example.com/api/disable",
+        "http://example.com/api/status"
+    }; ce qui pourrais lancé des connection vers des urls malveillante .
 
-2 : je regarde d'abord a la compilation  si il y a des erreurs j'observe plusieurs warnings
+6 : "help" afffiche une partie des commandes utilisables .
+
+7 : commande pour l'historique 
+
+8 : fonction "init_reactor" : rien d'anormal
+
+9 : fichier "load_config" contenannt des dead ends : focntion jamais appelées dans le code 
+comme une focntion permettant de verifié un mot de passe pour devenir admin mais qui n'est pas appelé 
+dans "activate_emergency_protocols" ceci s'appele  data leaks ou Hidden Functionality
+De plus on constate une focntion tres dangereuse : void why_do_i_exist() {
+    asm volatile (
+        "pop %rdi\n"
+        "ret\n"
+    );
+} cette focntion peux etre utiliser dans le cadre d'une attaque ROP :Return-Oriented Programming puisqu'elle permet de prendre la première valeur de la stack
+pour la mettre dans un registre ce qui peut etre tres utilie car c'est généralement ici qu'on va ranger le premier 
+arguments de focntions tel que des syscall .
+Pour l'instant aucune des focntions dans ce fichier ne sont appelées mais elle pourrait constituer de nombreuses failles.
+
+
+10 : "load_fuel_rods" dans cette focntion on nous demande de rentrer un chiffre entre 1 et 10 afin de lancer une simulation sur les fuel rods .
+On constate avec les condition qu'il y'a deux barrière avant d'afficher le flag : on doit tout d'abotrd s'assurer que le chiffre rentré n'est pas supérieur a 10 pour rentrer dans la suite de la focntion .
+Ensuite il faut ne pas rentrer dans le deuxième if et pour ca il faut que le chiffre donné ne sois pas comprit entre 0 et 10 sachant qu'il ne doit pas etre supérieur a 10 non plus .
+Il nous reste donc les chiffre négatifs , on test -1 : le flag s'affiche : {The secret stone is here !}  ---> logical vulnerability
+
+
+nom possible pour faille de logique comme la 10
+
+-Logic flaw
+-Off-by-one error
+-Incorrect bounds check
+-Improper input validation
+
+
+
+11 : je regarde d'abord a la compilation  si il y a des erreurs j'observe plusieurs warnings
     le premier: src/commands/check_cooling_pressure.c:43:9: warning: pointer ‘data’ used after ‘free’ [-Wuse-after-free]
    43 |     if (strcmp(data, "Pressure OK")) {
       |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,7 +74,7 @@ src/commands/check_cooling_pressure.c:41:5: note: call to ‘free’ here
 on observe un used-after-free ça veux dire qu' on a free(data) et après on utilise data il faudrait utiliser free(data) a la fin.
 
 
-3 : ensuite src/commands/load_config.c: In function ‘load_config’:
+12 : ensuite src/commands/load_config.c: In function ‘load_config’:
 src/commands/load_config.c:35:5: warning: ‘read’ writing 100 bytes into a region of size 8 overflows the destination [-Wstringop-overflow=]
    35 |     read(fd, array, 100);
       |     ^~~~~~~~~~~~~~~~~~~~
@@ -25,7 +84,7 @@ src/commands/load_config.c:31:10: note: destination object ‘array’ of size 8
 ici il y a un buffer-overflow car char array = 8 et on lui donne 100 il n'y a donc pas assez de place  il faudrait soit initialiser char array a 100 ou allouer dynamiquement
 
 
-4 : src/my_console.c:119:6: warning: conflicting types for ‘check_pepito_lib’; have ‘void(char *)’
+13 : src/my_console.c:119:6: warning: conflicting types for ‘check_pepito_lib’; have ‘void(char *)’
   119 | void check_pepito_lib(char *input){
       |      ^~~~~~~~~~~~~~~~
 src/my_console.c:87:13: note: previous implicit declaration of ‘check_pepito_lib’ with type ‘void(char *)’
@@ -34,13 +93,13 @@ src/my_console.c:87:13: note: previous implicit declaration of ‘check_pepito_l
 ici il y a un conflit dans la déclaration de la fonction check_pipeto_lib on voit ici qu'elle ne prennent pas le meme parametres
 
 
-5 : rc/my_console.c:120:19: warning: typedef ‘t_myfunc’ locally defined but not used [-Wunused-local-typedefs]
+14 : rc/my_console.c:120:19: warning: typedef ‘t_myfunc’ locally defined but not used [-Wunused-local-typedefs]
   120 |     typedef void(*t_myfunc)(void);
       |                   ^~~~~~~~
 on voit ici un unused c'est a dire qu'on ne l'utilise pas on peux donc le supprimer 
 
 
-6: src/utils.c: In function ‘load_pipetorc’:
+15: src/utils.c: In function ‘load_pipetorc’:
 src/utils.c:44:18: warning: format not a string literal and no format arguments [-Wformat-security]
    44 |           printf(line);
       |                  ^~~~
@@ -48,12 +107,12 @@ src/utils.c:44:18: warning: format not a string literal and no format arguments 
 erreur du format string c'est a dire que le printf est mal utilisé il faudrait plutot utiliser si c'est un char * printf("%s", line)
 
 
-7 : monitor_radiation_levels.c:(.text+0x45): warning: the `gets' function is dangerous and should not be used.
+16 : monitor_radiation_levels.c:(.text+0x45): warning: the `gets' function is dangerous and should not be used.
 
 on voit ici que l'utilisation du gets est dangereuse car gets est beucoup plus vunérable au buffer overflow il faudrais utilisé fgets de préférence.
 
 
-8 : void log_system_event()
+17 : void log_system_event()
 
     if (strstr(input, "leak")) {
         fprintf(log, "SECRET_KEY_LEAKED: %s\n", secret_key);
@@ -63,7 +122,7 @@ si on tape leak la cley secrete apparait alors on peux considérer comme une fui
 cette fuite
 
 
-9 : monitor_radiation_levels ()
+18 : monitor_radiation_levels ()
 
         char    buffer[10];
 		void (* function_ptr) () = NULL;
@@ -89,7 +148,7 @@ vers une autre adresse dont celle de
 alors le flag sera écris
 
 
-10 : run_diagnostic()
+19 : run_diagnostic()
 
     on a :
         char sensitive_info[64] = "{SECRET DIAGNOSTIC KEY}";
@@ -109,7 +168,7 @@ alors le flag sera écris
     on voit donc que si l'utilisateur tape debug sensitive info est affiché donc c'est de l fuite de données
     importante et sensible 
 
-11 : set_reactor_power()
+20 : set_reactor_power()
 
     char power[11];
 
