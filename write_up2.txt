@@ -195,3 +195,69 @@ alors le flag sera écris
         exit(1);
     }
     et ici on a donc un integer overflows si on met la valeur maximal d'un int le flag sort
+
+21 : simulate_meltdown()
+
+    il y a pas de grand probleme majeur a part peut etre une potielle fuite de donnée si random 
+    number obtient un certains nombre le code secret apparait 
+    
+    void simulate_meltdown()
+
+    char reactor_status[32] = "Reactor Stable";
+    int random_number = rand() % 100;
+    char secret_code[16] = "{MELTDOWN1234}";
+
+    printf("Generated random number: %d\n", random_number);
+
+    if (random_number < 10) {
+        printf("Meltdown simulated! Reactor core is overheating.\n");
+        strcpy(reactor_status, "Reactor Overheating");
+
+        if (random_number < 5) {
+            printf("Critical Error: Secret Code Leaked: %s\n", secret_code);
+            return;
+        }
+    } else if (random_number < 20)
+    ...
+
+si il est < 5 il y a un leak 
+
+22 :void trigger_emergency_shutdown()
+
+    on observe ici qu'il faut qu'une variable non définis dans le codes est vrai alors on peut
+    lancer le shutdown 
+
+
+void trigger_emergency_shutdown()
+{
+    if (!IS_ADMIN) {
+        printf("You are not authorized to trigger an emergency shutdown.\n");
+        return;
+    }
+    printf("{SHUTDOWN}");
+    exit(0);
+} de meme pour la fonction 
+
+void unlock_secret_mode()
+{
+    if (IS_ADMIN) {
+        printf("Secret mode unlocked! Welcome, admin.\n");
+        printf("{ADMIN4242}\n");
+    } else {
+        printf("Access denied. You do not have the required privileges.\n");
+    }
+}
+
+23 : int
+	main
+	(
+			UNUSED int       ac
+			, UNUSED char ** av
+			)
+	{
+		return
+				my_console
+				(
+						);
+	}
+    a part peut etre la lisibilité du code il n'y a pas de probleme
