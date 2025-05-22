@@ -14,7 +14,8 @@
 void activate_emergency_protocols()
 {
     char input[100];
-    char *cryptpassword = "$2b$12$3dLPrzdjYbUQ3FdZ5ClLU.5cICrkqSvYYz3Yr9MkWZ8qLZ8fMjVGS";
+    char *cryptpassword =
+        "$2b$12$3dLPrzdjYbUQ3FdZ5ClLU.5cICrkqSvYYz3Yr9MkWZ8qLZ8fMjVGS";
     char *crypt_input;
 
     printf("Enter emergency password: ");

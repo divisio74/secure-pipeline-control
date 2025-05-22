@@ -30,6 +30,21 @@ void check_reactor_status()
     char *salt;
     char *hash;
 
+    first_print();
+    printf("Encrypting critical reactor data...\n");
+    message = "ReactorStatusOK";
+    encrypted_message[100];
+    salt = "$6$salt1234";
+    encrypt_message(message, encrypted_message, 3);
+    hash = crypt(encrypt_message, salt);
+    sleep(1);
+    printf("Encrypted message: %s\n\n", hash);
+    printf("Reactor status: OK\n");
+    printf("Reactor status check complete.\n\n");
+}
+
+void first_print()
+{
     printf("Starting reactor status check...\n");
     sleep(1);
     printf("Checking core temperature...\n");
@@ -43,14 +58,4 @@ void check_reactor_status()
     printf("Checking radiation levels...\n");
     sleep(2);
     printf("Radiation levels: Safe\n\n");
-    printf("Encrypting critical reactor data...\n");
-    message = "ReactorStatusOK";
-    encrypted_message[100];
-    salt = "$6$salt1234";
-    encrypt_message(message, encrypted_message, 3);
-    hash = crypt(encrypt_message, salt);
-    sleep(1);
-    printf("Encrypted message: %s\n\n", hash);
-    printf("Reactor status: OK\n");
-    printf("Reactor status check complete.\n\n");
 }
