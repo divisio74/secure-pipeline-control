@@ -1,0 +1,50 @@
+diff --git a/src/commands/monitor_radiation_levels.c b/src/commands/monitor_radiation_levels.c
+index f7fa47d..5aa4aa0 100644
+--- a/src/commands/monitor_radiation_levels.c
++++ b/src/commands/monitor_radiation_levels.c
+@@ -7,24 +7,24 @@
+ 
+ #include <stdio.h>
+ #include <string.h>
+-void secret_function ()
+-	{
+-		printf (
+-				"{The stone isn't in the pocket anymore ...}\n");
+-	}
+-void monitor_radiation_levels ()
+-	{
+-		char    buffer[10];
+-		void (* function_ptr) () = NULL;
+-		printf ("Enter radiation levels: ");
+-		gets (buffer);
+-		printf ("Radiation Levels: %s\n" ,buffer);
+-		if (function_ptr)
+-			{
+-				function_ptr();
+-			} else
+-			{
+-				printf ("Function Pointer: %p\n"
+-						,( void * ) function_ptr);
+-			}
+-	}
++
++void secret_function(void)
++{
++    printf("{The stone isn't in the pocket anymore ...}\n");
++}
++
++void monitor_radiation_levels(void)
++{
++    char buffer[10];
++    void (*function_ptr)(void) = NULL;
++
++    printf("Enter radiation levels: ");
++    fgets(buffer, sizeof(buffer), stdin);
++    buffer[strcspn(buffer, "\n")] = '\0';
++    printf("Radiation Levels: %s\n", buffer);
++    if (function_ptr) {
++        function_ptr();
++    } else {
++        printf("Function Pointer: %p\n", (void *)function_ptr);
++    }
++}
