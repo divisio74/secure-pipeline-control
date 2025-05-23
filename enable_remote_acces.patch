@@ -1,0 +1,46 @@
+diff --git a/src/commands/enable_remote_access.c b/src/commands/enable_remote_access.c
+index 75e413d..573fe67 100644
+--- a/src/commands/enable_remote_access.c
++++ b/src/commands/enable_remote_access.c
+@@ -14,7 +14,6 @@
+ void perform_network_call(const char *url)
+ {
+     printf("Performing network call to: %s\n", url);
+-
+     for (volatile int i = 0; i < 100000000; i++);
+     sleep(5);
+     printf("Network call to %s completed.\n", url);
+@@ -33,28 +32,21 @@ void enable_remote_access()
+ {
+     static int enabled = 0;
+ 
+-    const char *dummy_urls[] = {
+-        "http://example.com/api/enable",
+-        "http://example.com/api/disable",
+-        "http://example.com/api/status"
+-    };
+-
+     printf("Initializing remote access procedure...\n\n");
+-
+     if (enabled == 0) {
+         printf("Enabling remote access...\n");
+-        perform_network_call(dummy_urls[0]);
++        perform_network_call("http://example.com/api/enable");
+         log_access_attempt("ENABLED");
+         enabled = 1;
+         printf("Remote access successfully enabled.\n\n");
+         printf("Performing status check...\n");
+-        perform_network_call(dummy_urls[2]);
++        perform_network_call("http://example.com/api/status");
+         printf("Status check complete.\n\n");
+     } else {
+         printf("Disabling remote access...\n");
+-        perform_network_call(dummy_urls[1]);
++        perform_network_call("http://example.com/api/disable");
+         log_access_attempt("DISABLED");
+         enabled = 0;
+         printf("Remote access successfully disabled.\n\n");
+     }
+-}
+\ No newline at end of file
++}

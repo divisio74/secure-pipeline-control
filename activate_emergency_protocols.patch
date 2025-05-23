@@ -1,0 +1,33 @@
+diff --git a/src/commands/activate_emergency_protocols.c b/src/commands/activate_emergency_protocols.c
+index 2621b27..9d5d4a5 100644
+--- a/src/commands/activate_emergency_protocols.c
++++ b/src/commands/activate_emergency_protocols.c
+@@ -8,21 +8,25 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdbool.h>
++#include <unistd.h>
+ #include "pipeto.h"
+ 
+ void activate_emergency_protocols()
+ {
+     char input[100];
+-    
++    char *cryptpassword =
++        "$2b$12$3dLPrzdjYbUQ3FdZ5ClLU.5cICrkqSvYYz3Yr9MkWZ8qLZ8fMjVGS";
++    char *crypt_input;
++
+     printf("Enter emergency password: ");
+     fgets(input, sizeof(input), stdin);
+     input[strcspn(input, "\n")] = 0;
+-
+     if (strlen(input) == 0) {
+         printf("No password entered, emergency protocols not activated.\n");
+         return;
+     }
+-    if (strcmp(input, "admin123") == 0) {
++    crypt_input = crypt(input, cryptpassword);
++    if (strcmp(crypt_input, cryptpassword) == 0) {
+         printf("{Emergency protocols activated, you are now admin !}\n");
+         IS_ADMIN = true;
+     }
