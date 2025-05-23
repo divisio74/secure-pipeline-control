@@ -1,0 +1,51 @@
+diff --git a/src/commands/load_fuel_rods.c b/src/commands/load_fuel_rods.c
+index 2f27156..160a1c3 100644
+--- a/src/commands/load_fuel_rods.c
++++ b/src/commands/load_fuel_rods.c
+@@ -7,23 +7,35 @@
+ 
+ #include <stdio.h>
+ 
+-void load_fuel_rods()
++int get_number_of_fuel_rods(void)
+ {
+-    int fuel_rods[10];
+-    int i = 0;
+     char input[100];
+-    char secret_key[28] = "{The secret stone is here !}";
+-    
++    int i = 0;
++
+     printf("Loading fuel rods...\n");
+     printf("Enter the number of fuel rods to load (max 10): ");
+     fgets(input, 100, stdin);
+-    sscanf(input, "%d", &i);
+-
+-    if (i > 10) {
+-        printf("Error: Too many fuel rods!\n");
+-        return;
++    for (int k = 0; input[k] != '\0'; k++) {
++        if (!isdigit(input[k]) && input[k] != '\n') {
++            printf("Error:Only numbers allowed.\n");
++            return 0;
++        }
+     }
+-    else if (i < 10 && i > 0) {
++    i = atoi(input);
++    if (i <= 0 || i > 10) {
++        printf("Error: Number of fuel rods must be between 1 and 10.\n");
++        return 0;
++    }
++    return i;
++}
++
++void load_fuel_rods(void)
++{
++    int fuel_rods[10];
++    char secret_key[28] = "{The secret stone is here !}";
++    int i = get_number_of_fuel_rods();
++
++    if (i < 10 && i > 0) {
+         for (int j = 0; j < i; j++) {
+             fuel_rods[j] = j + 1;
+             printf("Fuel rod %d loaded.\n", fuel_rods[j]);
