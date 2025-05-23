@@ -17,14 +17,14 @@ bool is_safe_command(const char *command)
         sizeof(allowed_commands) / sizeof(allowed_commands[0]);
 
     for (size_t i = 0; i < num_commands; i++) {
-        if (strcmp(command, allowed_commands[i]) == 0) {
+        if (strcmp(command, allowed_commands[i]) == 0)
             return true;
-        }
     }
     return false;
 }
 
-void configure_cooling_system() {
+void configure_cooling_system()
+{
     char *config_file = "Data/cooling_config.txt";
     char buffer[64];
     FILE *file = fopen(config_file, "r");

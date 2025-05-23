@@ -17,7 +17,8 @@ void load_config()
     int fd = open("./config.ini", O_RDONLY);
 
     read(fd, array, 100);
-    if (0 /* TODO */) {
+    if (array != 0) {
+        printf("\n%s is loaded !\n", array);
     } else {
         printf("failure!\n");
     }

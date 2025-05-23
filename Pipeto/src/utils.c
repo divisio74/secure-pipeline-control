@@ -33,16 +33,14 @@ void process_rc_file(FILE *rc_file)
     char line[1024];
 
     while (fgets(line, sizeof(line), rc_file)) {
-        if (line[0] == '#' || line[0] == '\n') {
+        if (line[0] == '#' || line[0] == '\n')
             continue;
-        }
         line[strcspn(line, "\n")] = '\0';
         if (strncmp(line, "exec ", 5) == 0) {
             printf("Executing command: %s\n", line + 5);
             system(line + 5);
-        } else {
+        } else
             printf("Pipeto command: %s\n", line);
-        }
     }
 }
 
@@ -53,11 +51,11 @@ void load_pipetorc()
     char home_rc[1024];
 
     snprintf(home_rc, sizeof(home_rc), "%s/.pipetorc", home);
-    if (is_valid_file(".pipetorc")) {
+    if (is_valid_file(".pipetorc"))
     	rc_file = fopen(".pipetorc", "r");
-    } else if (is_valid_file(home_rc)) {
+    else if (is_valid_file(home_rc))
         rc_file = fopen(home_rc, "r");
-    } else
+    else
         return;
     if (!rc_file)
         rc_file = fopen(home_rc, "r");
@@ -68,4 +66,3 @@ void load_pipetorc()
     process_rc_file(rc_file);
     fclose(rc_file);
 }
-

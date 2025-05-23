@@ -10,7 +10,9 @@
 
 void encrypt_message(const char *input, char *output, int shift)
 {
-    for (int i = 0; input[i] != '\0'; i++) {
+    int i = 0;
+
+    for (i; input[i] != '\0'; i++) {
         if (input[i] >= 'A' && input[i] <= 'Z') {
             output[i] = ((input[i] - 'A' + shift) % 26) + 'A';
         } else if (input[i] >= 'a' && input[i] <= 'z') {
@@ -20,7 +22,6 @@ void encrypt_message(const char *input, char *output, int shift)
         }
     }
     output[i] = '\0';
-
 }
 
 void check_reactor_status()
