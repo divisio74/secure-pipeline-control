@@ -1,0 +1,144 @@
+diff --git a/src/commands/quit.c b/src/commands/quit.c
+index 1abfd84..51f2a8a 100644
+--- a/src/commands/quit.c
++++ b/src/commands/quit.c
+@@ -8,8 +8,8 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
+-void quit()
+-{   
++void quit(void)
++{
+     printf("Exiting program...\n");
+     exit(0);
+ }
+diff --git a/src/commands/send_status_report.c b/src/commands/send_status_report.c
+index 1730934..6ff3f41 100644
+--- a/src/commands/send_status_report.c
++++ b/src/commands/send_status_report.c
+@@ -10,65 +10,86 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++static void encode_block(const unsigned char *char_array_3,
++    char *char_array_4, int len)
++{
++    const char *base64_chars =
++        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
++    unsigned char block[4];
++
++    block[0] = (char_array_3[0] & 0xfc) >> 2;
++    block[1] = ((char_array_3[0] & 0x03) << 4) |
++        ((char_array_3[1] & 0xf0) >> 4);
++    block[2] = ((char_array_3[1] & 0x0f) << 2) |
++        ((char_array_3[2] & 0xc0) >> 6);
++    block[3] = char_array_3[2] & 0x3f;
++    for (int i = 0; i < 4; i++)
++        if (i <= len) {
++            char_array_4[i] = base64_chars[block[i]];
++        } else {
++            char_array_4[i] = '=';
++        }
++}
++
++static void encode_and_write(unsigned char *char_array_3,
++    char *output, int *j, int len)
++{
++    char char_array_4[4];
++
++    encode_block(char_array_3, char_array_4, len);
++    for (int k = 0; k < 4; k++) {
++        output[(*j)] = char_array_4[k];
++        j++;
++    }
++}
++
+ void base64_encode(const char *input, char *output)
+ {
+-    const char *base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+-    int i = 0, j = 0;
+-    unsigned char char_array_3[3], char_array_4[4];
++    int i = 0;
++    int j = 0;
++    unsigned char char_array_3[3];
+ 
+     while (*input) {
+-        char_array_3[i++] = *(input++);
++        char_array_3[i] = *(input);
++        i++;
++        input++;
+         if (i == 3) {
+-            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+-            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+-            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+-            char_array_4[3] = char_array_3[2] & 0x3f;
+-
+-            for (i = 0; i < 4; i++)
+-                output[j++] = base64_chars[char_array_4[i]];
++            encode_and_write(char_array_3, output, &j, 2);
+             i = 0;
+         }
+     }
+-
+     if (i) {
+         for (int k = i; k < 3; k++)
+             char_array_3[k] = '\0';
+-
+-        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+-        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+-        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+-        char_array_4[3] = char_array_3[2] & 0x3f;
+-
+-        for (int k = 0; k < i + 1; k++)
+-            output[j++] = base64_chars[char_array_4[k]];
+-
+-        while (i++ < 3)
+-            output[j++] = '=';
++        encode_and_write(char_array_3, output, &j, i);
+     }
+-
+     output[j] = '\0';
+ }
+ 
+-void send_status_report()
++static void create_report(char *buffer, size_t size)
++{
++    const char *host = "localhost";
++    const char *ip = "127.0.0.1";
++    const char *proc = "Process: pipeto (PID: 1234)";
++
++    snprintf(buffer, size, "Hostname: %s\nIP Address: %s\n%s\n",
++        host, ip, proc);
++}
++
++void send_status_report(void)
+ {
++    char report[256];
++    char encoded[512];
+     FILE *file = fopen("Data/status_report.txt", "w");
+ 
+     if (!file) {
+-        printf("Error: Unable to create a file in Data/, you must create a Data folder.\n");
++        printf("Error: Unable to create a file in Data/");
++        printf(",you must create a Data folder.\n");
+         return;
+     }
+-
+-    const char *hostname = "localhost";
+-    const char *ip_address = "127.0.0.1";
+-    const char *process_info = "Process: pipeto (PID: 1234)";
+-    char report[256];
+-    snprintf(report, sizeof(report), "Hostname: %s\nIP Address: %s\n%s\n", hostname, ip_address, process_info);
+-
+-    char encoded_report[512];
+-    base64_encode(report, encoded_report);
+-
+-    fprintf(file, "Encoded Status Report:\n%s\n", encoded_report);
++    create_report(report, sizeof(report));
++    base64_encode(report, encoded);
++    fprintf(file, "Encoded Status Report:\n%s\n", encoded);
+     fclose(file);
+-
+     printf("Status report sent and saved to 'Data/status_report.txt'.\n");
+ }
