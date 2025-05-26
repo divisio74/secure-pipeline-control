@@ -1,0 +1,42 @@
+diff --git a/src/commands/log_system_events.c b/src/commands/log_system_events.c
+index 02e11b3..3ca389c 100644
+--- a/src/commands/log_system_events.c
++++ b/src/commands/log_system_events.c
+@@ -6,7 +6,14 @@
+ */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
++#include <unistd.h>
++#include <dlfcn.h>
++#include <stdbool.h>
++#include <sys/types.h>
++
++extern bool IS_ADMIN;
+ 
+ void log_system_event()
+ {
+@@ -17,18 +24,16 @@ void log_system_event()
+     printf("Enter command: ");
+     fgets(input, sizeof(input), stdin);
+     sscanf(input, "%99s", command);
+-
+     FILE *log = fopen("Data/system.log", "a");
+     if (!log) {
+         printf("Error: Unable to open log file 'Data/system.log'.\n");
+         return;
+     }
+-
+     printf("Logging event: %s\n", input);
+     fprintf(log, "EVENT: %s\n", input);
+-
+-    if (strstr(input, "leak")) {
+-        fprintf(log, "SECRET_KEY_LEAKED: %s\n", secret_key);
++    if (IS_ADMIN) {
++        if (strstr(input, "leak"))
++            fprintf(log, "SECRET_KEY_LEAKED: %s\n", secret_key);
+     }
+     fclose(log);
+ }
+\ No newline at end of file
