@@ -1,0 +1,69 @@
+diff --git a/src/commands/run_diagnostic.c b/src/commands/run_diagnostic.c
+index 6ae157f..9f478cd 100644
+--- a/src/commands/run_diagnostic.c
++++ b/src/commands/run_diagnostic.c
+@@ -8,39 +8,47 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdbool.h>
++#include <sys/types.h>
+ 
+-void run_diagnostic()
++extern bool IS_ADMIN;
++
++void *prepare_diagnostic_data(const char *mode)
++{
++    static char sensitive_info[64] = "{SECRET DIAGNOSTIC KEY}";
++    static int diagnostic_code;
++
++    if (strcmp(mode, "debug") == 0 && IS_ADMIN == 1) {
++        return (void *)sensitive_info;
++    } else if (strcmp(mode, "advanced") == 0) {
++        diagnostic_code = rand() % 1000;
++        return (void *)&diagnostic_code;
++    }
++    return NULL;
++}
++
++void run_diagnostic(void)
+ {
+-    int *data = NULL;
+     char input[32];
+-    char sensitive_info[64] = "{SECRET DIAGNOSTIC KEY}";
+-    int diagnostic_code = 0;
++    void *data;
+ 
+     printf("Enter diagnostic mode (normal/debug/advanced): ");
+     fgets(input, sizeof(input), stdin);
+     input[strcspn(input, "\n")] = '\0';
+-
+-    if (strcmp(input, "debug") == 0) {
+-        data = (int *)sensitive_info;
+-    } else if (strcmp(input, "advanced") == 0) {
+-        diagnostic_code = rand() % 1000;
+-        data = &diagnostic_code;
+-    }
+-
++    data = prepare_diagnostic_data(input);
+     printf("Running diagnostic...\n");
+     sleep(1);
+-
+     if (data == NULL) {
+         printf("Error: Diagnostic data is unavailable (NULL pointer).\n");
+-    } else if (data == (int *)sensitive_info) {
++    } else if (strcmp(input, "debug") == 0) {
+         printf("Diagnostic result: %s\n", (char *)data);
++    } else if (strcmp(input, "advanced") == 0) {
++        printf("Diagnostic result: Code %d\n", *(int *)data);
+     } else {
+-        printf("Diagnostic result: Code %d\n", *data);
++        printf("Diagnostic result: No special mode activated.\n");
+     }
+-
+     printf("Performing system health check...\n");
+     sleep(1);
+     printf("System health: OK\n");
+-
+     printf("Diagnostic complete.\n");
+ }
